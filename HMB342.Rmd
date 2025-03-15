@@ -1,0 +1,475 @@
+---
+title: "HMB342 Assignment 3"
+output: html_document
+date: "2025-03-13"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)#first read in unnecessary packages 
+```
+
+1. Read in the appropriate datasets 
+
+```{r}
+pc_attachment <- read.csv("PC_Attachment.csv")
+edv_low <- read.csv("EDV_Low_Urgency.csv")
+edv_high <- read.csv("EDV_High_Urgency.csv")
+```
+
+Starting the cleaning process: 
+```{r}
+head(pc_attachment)
+pc_attachment
+names(pc_attachment)[1]<-paste("neighborhood_ID")
+names(pc_attachment)[2]<-paste("neighborhood_name")
+names(pc_attachment)[3]<-paste("total")
+names(pc_attachment)[4]<-paste("attached")
+names(pc_attachment)[5]<-paste("percent_attached")
+names(pc_attachment)[6]<-paste("attached_female")
+names(pc_attachment)[7]<-paste("attached_male")
+names(pc_attachment)[8]<-paste("attached_under_19")
+names(pc_attachment)[9]<-paste("attached_19_34")
+names(pc_attachment)[10]<-paste("attached_35_49")
+names(pc_attachment)[11]<-paste("attached_50_64")
+names(pc_attachment)[12]<-paste("attached_65_79")
+names(pc_attachment)[13]<-paste("attached_80_plus")
+names(pc_attachment)[14]<-paste("uncertainly_attached")
+names(pc_attachment)[15]<-paste("percent_uncertainly_attached")
+names(pc_attachment)[16]<-paste("uncertainly_attached_female")
+names(pc_attachment)[17]<-paste("uncertainly_attached_male")
+names(pc_attachment)[18]<-paste("uncertainly_attached_19")
+names(pc_attachment)[19]<-paste("uncertainly_attached_19_34")
+names(pc_attachment)[20]<-paste("uncertainly_attached_35_49")
+names(pc_attachment)[21]<-paste("uncertainly_attached_50_64")
+names(pc_attachment)[22]<-paste("uncertainly_attached_65_79")
+names(pc_attachment)[23]<-paste("uncertainly_attached_80_plus")
+pc_attachment
+
+pc_attachment <- pc_attachment %>%
+  slice(-c(1,2)) %>%
+  mutate(
+    across(3:23, as.numeric), 
+    across(1:2, as.character))
+pc_attachment
+```
+```{r}
+edv_low
+edv_high
+```
+
+
+```{r}
+edv_low
+edv_low <- edv_low %>%
+  slice(-c(1, 2, 3, 4, 5)) %>%
+  mutate(
+    across(3:132, as.numeric), 
+    across(1:2, as.character))
+edv_high <- edv_high %>%
+  slice(-c(1, 2, 3, 4, 5)) %>%
+  mutate(
+    across(3:132, as.numeric), 
+    across(1:2, as.character))
+
+names(edv_high)[1]<-paste("neighborhood_ID")
+names(edv_high)[2]<-paste("neighborhood_name")
+
+names(edv_low)[1]<-paste("neighborhood_ID")
+names(edv_low)[2]<-paste("neighborhood_name")
+
+```
+2. Now we want to look at how % of primary care attachment varies acrosss different ages and how the 
+outcome of emergency department visits are altered (in both low & high urgency visits). 
+
+A. Age Group 80+ 
+
+```{r}
+#first for the EDV Low Urgency Group 
+names(edv_low)[123]<-paste("low_urgency_75_plus")
+edv_low %>%
+  select(neighborhood_name, low_urgency_75_plus) -> edv_low75
+
+#now for the EDV High Urgency Group
+names(edv_high)[123]<-paste("high_urgency_75_plus")
+edv_high %>%
+  select(neighborhood_name, high_urgency_75_plus) -> edv_high75
+
+edv_high75
+
+
+edv_low_high_75 <- full_join(edv_low75, edv_high75, 
+            by = c("neighborhood_name"))
+
+pc_attachment %>%
+  select(neighborhood_name, total, attached_80_plus) %>%
+  mutate(attached_percent_80_plus = ((attached_80_plus/total)*100)) -> pc_attachment_75
+  
+
+
+edv_attachment_75_comb <- full_join(edv_low_high_75, pc_attachment_75,
+            by = c("neighborhood_name"))
+  
+```
+
+
+```{r}
+edv_attachment_75_comb %>%
+  ggplot(aes(x = attached_percent_80_plus)) +
+  geom_point(aes(y = high_urgency_75_plus, color = "high urgency")) +
+    geom_point(aes(y = low_urgency_75_plus, color = "low urgency"))+
+    scale_color_manual(name = "Emergency Department Visit Urgency", values = c("high urgency" = "red3", "low urgency" = "lightblue")) +
+  theme_minimal() +
+  labs(x = "Percent of Population Attached to Primary Care Physician", y = "Average Annual Rate of ED Visits (per 1000 population)")
+```
+Really interesting data!!
+
+
+
+B. Let's do this for the 65-79 age cohort!!
+
+
+
+```{r}
+#first for the EDV Low Urgency Group 
+names(edv_low)[107]<-paste("low_urgency_65_79")
+edv_low %>%
+  select(neighborhood_name, low_urgency_65_79) -> edv_low_65_79
+
+#now for the EDV High Urgency Group
+names(edv_high)[107]<-paste("high_urgency_65_79")
+edv_high %>%
+  select(neighborhood_name, high_urgency_65_79) -> edv_high_65_79
+
+
+edv_low_high_65_79 <- full_join(edv_low_65_79, edv_high_65_79, 
+            by = c("neighborhood_name"))
+
+pc_attachment %>%
+  select(neighborhood_name, total, attached_65_79) %>%
+  mutate(attached_percent_65_79 = ((attached_65_79/total)*100)) -> pc_attachment_65_79
+  
+
+
+edv_attachment_65_79_comb <- full_join(edv_low_high_65_79, pc_attachment_65_79,
+            by = c("neighborhood_name"))
+  
+```
+
+Visualizing the 65-79 Cohort:
+
+```{r}
+edv_attachment_65_79_comb %>%
+  ggplot(aes(x = attached_percent_65_79)) +
+  geom_point(aes(y = high_urgency_65_79, color = "high urgency")) +
+    geom_point(aes(y = low_urgency_65_79, color = "low urgency"))+
+    scale_color_manual(name = "Emergency Department Visit Urgency", values = c("high urgency" = "red3", "low urgency" = "lightblue")) +
+  theme_minimal() +
+  labs(x = "Percent of Population Attached to Primary Care Physician", y = "Average Annual Rate of ED Visits (per 1000 population)")
+```
+
+
+C. Let's do this for the 45-64 age cohort!!
+
+
+```{r}
+#first for the EDV Low Urgency Group 
+names(edv_low)[90]<-paste("low_urgency_45_64")
+edv_low %>%
+  select(neighborhood_name, low_urgency_45_64) -> edv_low_45_64
+
+#now for the EDV High Urgency Group
+names(edv_high)[90]<-paste("high_urgency_45_64")
+edv_high %>%
+  select(neighborhood_name, high_urgency_45_64) -> edv_high_45_64
+
+
+edv_low_high_45_64 <- full_join(edv_low_45_64, edv_high_45_64, 
+            by = c("neighborhood_name"))
+
+pc_attachment %>%
+  select(neighborhood_name, total, attached_50_64) %>%
+  mutate(attached_percent_45_64 = ((attached_50_64/total)*100)) -> pc_attachment_45_64
+  
+
+
+edv_attachment_45_64_comb <- full_join(edv_low_high_45_64, pc_attachment_45_64,
+            by = c("neighborhood_name"))
+  
+```
+
+Now Visualize the 45-64 Cohort: 
+
+```{r}
+edv_attachment_45_64_comb %>%
+  ggplot(aes(x = attached_percent_45_64)) +
+  geom_point(aes(y = high_urgency_45_64, color = "high urgency")) +
+    geom_point(aes(y = low_urgency_45_64, color = "low urgency"))+
+    scale_color_manual(name = "Emergency Department Visit Urgency", values = c("high urgency" = "red3", "low urgency" = "lightblue")) +
+  theme_minimal() +
+  labs(x = "Percent of Population Attached to Primary Care Physician", y = "AAverage Annual Rate of ED Visits (per 1000 population)")
+```
+
+D. Let's do this for the 35-49 Age Cohort!
+
+
+
+```{r}
+#first for the EDV Low Urgency Group 
+names(edv_low)[73]<-paste("low_urgency_35_49")
+edv_low %>%
+  select(neighborhood_name, low_urgency_35_49) -> edv_low_35_49
+
+#now for the EDV High Urgency Group
+names(edv_high)[73]<-paste("high_urgency_35_49")
+edv_high %>%
+  select(neighborhood_name, high_urgency_35_49) -> edv_high_35_49
+
+
+edv_low_high_35_49 <- full_join(edv_low_35_49, edv_high_35_49, 
+            by = c("neighborhood_name"))
+
+pc_attachment %>%
+  select(neighborhood_name, total, attached_35_49) %>%
+  mutate(attached_percent_35_49 = ((attached_35_49/total)*100)) -> pc_attachment_35_49
+  
+
+
+edv_attachment_35_49_comb <- full_join(edv_low_high_35_49, pc_attachment_35_49,
+            by = c("neighborhood_name"))
+  
+```
+
+Now Visualize the 45-64 Cohort: 
+
+```{r}
+edv_attachment_35_49_comb %>%
+  ggplot(aes(x = attached_percent_35_49)) +
+  geom_point(aes(y = high_urgency_35_49, color = "high urgency")) +
+    geom_point(aes(y = low_urgency_35_49, color = "low urgency"))+
+    scale_color_manual(name = "Emergency Department Visit Urgency", values = c("high urgency" = "red3", "low urgency" = "lightblue")) +
+  theme_minimal() +
+  labs(x = "Percent of Population Attached to Primary Care Physician", y = "AAverage Annual Rate of ED Visits (per 1000 population)")
+```
+E. Now the 20-34 Age Cohort: 
+
+
+```{r}
+#first for the EDV Low Urgency Group 
+names(edv_low)[73]<-paste("low_urgency_20_34")
+edv_low %>%
+  select(neighborhood_name, low_urgency_20_34) -> edv_low_20_34
+
+#now for the EDV High Urgency Group
+names(edv_high)[73]<-paste("high_urgency_20_34")
+edv_high %>%
+  select(neighborhood_name, high_urgency_20_34) -> edv_high_20_34
+
+
+edv_low_high_20_34 <- full_join(edv_low_20_34, edv_high_20_34, 
+            by = c("neighborhood_name"))
+
+pc_attachment %>%
+  select(neighborhood_name, total, attached_19_34) %>%
+  mutate(attached_percent_20_34 = ((attached_19_34/total)*100)) -> pc_attachment_20_34
+  
+
+
+edv_attachment_20_34_comb <- full_join(edv_low_high_20_34, pc_attachment_20_34,
+            by = c("neighborhood_name"))
+  
+```
+
+Now Visualize the 20-34 Cohort: 
+
+```{r}
+edv_attachment_20_34_comb %>%
+  ggplot(aes(x = attached_percent_20_34)) +
+  geom_point(aes(y = high_urgency_20_34, color = "high urgency")) +
+    geom_point(aes(y = low_urgency_20_34, color = "low urgency"))+
+    scale_color_manual(name = "Emergency Department Visit Urgency", values = c("high urgency" = "red3", "low urgency" = "lightblue")) +
+  theme_minimal() +
+  labs(x = "Percent of Population Attached to Primary Care Physician", y = "Average Annual Rate of ED Visits (per 1000 population)")
+```
+F. Now for the 0-19 Cohort: 
+
+1) First Subset: 5-19
+
+```{r}
+#first for the EDV Low Urgency Group 
+names(edv_low)[56]<-paste("low_urgency_5_19")
+edv_low %>%
+  select(neighborhood_name, low_urgency_5_19) -> edv_low_5_19
+
+#now for the EDV High Urgency Group
+names(edv_high)[73]<-paste("high_urgency_5_19")
+edv_high %>%
+  select(neighborhood_name, high_urgency_5_19) -> edv_high_5_19
+
+
+edv_low_high_5_19 <- full_join(edv_low_5_19, edv_high_5_19, 
+            by = c("neighborhood_name"))
+
+pc_attachment %>%
+  select(neighborhood_name, total, attached_under_19) %>%
+  mutate(attached_percent_5_19 = ((attached_under_19/total)*100)) -> pc_attachment_5_19
+  
+
+
+edv_attachment_5_19_comb <- full_join(edv_low_high_5_19, pc_attachment_5_19,
+            by = c("neighborhood_name"))
+  
+```
+
+Now Visualize the 5-19 Cohort: 
+
+```{r}
+edv_attachment_5_19_comb %>%
+  ggplot(aes(x = attached_percent_5_19)) +
+  geom_point(aes(y = high_urgency_5_19, color = "high urgency")) +
+    geom_point(aes(y = low_urgency_5_19, color = "low urgency"))+
+    scale_color_manual(name = "Emergency Department Visit Urgency", values = c("high urgency" = "red3", "low urgency" = "lightblue")) +
+  theme_minimal() +
+  labs(x = "Percent of Population Attached to Primary Care Physician", y = "Average Annual Rate of ED Visits (per 1000 population)")
+```
+1) Second Subset: 0-4
+
+```{r}
+#first for the EDV Low Urgency Group 
+names(edv_low)[39]<-paste("low_urgency_0_4")
+edv_low %>%
+  select(neighborhood_name, low_urgency_0_4) -> edv_low_0_4
+
+#now for the EDV High Urgency Group
+names(edv_high)[39]<-paste("high_urgency_0_4")
+edv_high %>%
+  select(neighborhood_name, high_urgency_0_4) -> edv_high_0_4
+
+
+edv_low_high_0_4 <- full_join(edv_low_0_4, edv_high_0_4, 
+            by = c("neighborhood_name"))
+
+pc_attachment %>%
+  select(neighborhood_name, total, attached_under_19) %>%
+  mutate(attached_percent_0_4 = ((attached_under_19/total)*100)) -> pc_attachment_0_4
+  
+
+
+edv_attachment_0_4_comb <- full_join(edv_low_high_0_4, pc_attachment_0_4,
+            by = c("neighborhood_name"))
+  
+```
+
+Now Visualize the 0-4 Cohort: 
+
+```{r}
+edv_attachment_0_4_comb %>%
+  ggplot(aes(x = attached_percent_0_4)) +
+  geom_point(aes(y = high_urgency_0_4, color = "high urgency")) +
+    geom_point(aes(y = low_urgency_0_4, color = "low urgency"))+
+    scale_color_manual(name = "Emergency Department Visit Urgency", values = c("high urgency" = "red3", "low urgency" = "lightblue")) +
+  theme_minimal() +
+  labs(x = "Percent of Population Attached to Primary Care Physician", y = "Average Annual Rate of ED Visits (per 1000 population)")
+```
+
+3. Next, we want to put it all together: 
+
+
+```{r}
+edv_attachment_all_age_comb <- full_join(
+  full_join(
+    full_join(
+      full_join(
+        full_join(
+          full_join(edv_attachment_0_4_comb, edv_attachment_5_19_comb, by = "neighborhood_name"),
+          edv_attachment_20_34_comb, by = "neighborhood_name"),
+        edv_attachment_35_49_comb, by = "neighborhood_name"),
+      edv_attachment_45_64_comb, by = "neighborhood_name"),
+    edv_attachment_65_79_comb, by = "neighborhood_name"),
+  edv_attachment_75_comb, by = "neighborhood_name")
+
+edv_attachment_all_age_comb<- edv_attachment_all_age_comb %>%
+  rename(
+    attached_percent_75_plus = attached_percent_80_plus
+  )
+
+
+```
+
+```{r}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+
+# Assuming your merged dataframe is named edv_attachment_all_age_comb
+
+# Pivot only the low and high urgency columns
+edv_long <- edv_attachment_all_age_comb %>%
+  pivot_longer(
+    cols = c(
+      "low_urgency_0_4", "high_urgency_0_4",
+      "low_urgency_5_19", "high_urgency_5_19",
+      "low_urgency_20_34", "high_urgency_20_34",
+      "low_urgency_35_49", "high_urgency_35_49",
+      "low_urgency_45_64", "high_urgency_45_64",
+      "low_urgency_65_79", "high_urgency_65_79",
+      "low_urgency_75_plus", "high_urgency_75_plus"
+    ),
+    names_to = c("urgency", "age_group"),
+    names_pattern = "(low_urgency|high_urgency)_(.*)",
+    values_to = "visits"
+  )
+
+
+```
+
+
+```{r}
+edv_long %>%
+  ggplot(aes(x = age_group, y = visits, fill = urgency)) + 
+  geom_boxplot(position = position_dodge(0.8)) + 
+  labs(
+    title = "Emergency Department Visits Across Age Groups", 
+    x = "Age Group", 
+    y = "Rate of Visits per 1000 Population", 
+    fill = "Visit Type") + 
+  theme_minimal()
+
+```
+```{r}
+# Pivot the attached percent 
+edv_attachment_long <-edv_attachment_all_age_comb %>%
+  pivot_longer(
+    cols = c(
+      "attached_percent_0_4",
+      "attached_percent_5_19",
+      "attached_percent_20_34",
+      "attached_percent_35_49",
+      "attached_percent_45_64",
+      "attached_percent_65_79",
+      "attached_percent_75_plus"
+    ),
+    names_to = "age_group",
+    names_pattern = "attached_percent_(.*)",  # Extract age group part
+    values_to = "attachment_percent"
+  )
+
+edv_combined <- edv_long %>%
+  left_join(edv_attachment_long, by = "age_group")
+
+```
+
+```{r}
+edv_combined %>%
+  ggplot(aes(x = age_group, y = attachment_percent)) + 
+  geom_boxplot(position = position_dodge(0.8), fill = "lightblue") + 
+  labs(
+    title = "Percent of Population with Primary Care Attachment", 
+    x = "Age Group", 
+    y = "Percent of Population Attached") + 
+  theme_minimal()
+```
