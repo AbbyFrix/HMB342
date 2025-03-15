@@ -13,7 +13,7 @@ library(ggplot2)
 library(dplyr)#first read in unnecessary packages 
 ```
 
-1. Read in the appropriate datasets 
+1. Read in the appropriate datasets and clean the data 
 
 ```{r}
 pc_attachment <- read.csv("PC_Attachment.csv")
@@ -129,7 +129,6 @@ edv_attachment_75_comb %>%
 Really interesting data!!
 
 
-
 B. Let's do this for the 65-79 age cohort!!
 
 
@@ -171,6 +170,42 @@ edv_attachment_65_79_comb %>%
   theme_minimal() +
   labs(x = "Percent of Population Attached to Primary Care Physician", y = "Average Annual Rate of ED Visits (per 1000 population)")
 ```
+
+```{r}
+lmmodel65_79 <- glm(high_urgency_65_79 ~ attached_percent_65_79, data = edv_attachment_65_79_comb, family = "gaussian")
+summary(lmmodel65_79)
+AIC(lmmodel65_79)
+
+min_value <- min(edv_attachment_65_79_comb$attached_percent_65_79, na.rm = TRUE)
+max_value <- max(edv_attachment_65_79_comb$attached_percent_65_79, na.rm = TRUE)
+
+
+new_data <- expand.grid(
+  attached_percent_65_79 = seq(
+    min(min_value),
+    max(max_value),
+    length.out = 100
+  )
+)
+
+predictions <- predict(lmmodel65_79, newdata = new_data, type = "response")
+new_data$predict <- predictions
+  
+```
+
+
+```{r}
+ggplot(edv_attachment_65_79_comb, aes(x = attached_percent_65_79, y = high_urgency_65_79)) +
+  geom_point(color = "darkblue", alpha = 0.6) +  # Scatter plot of observed data
+  geom_line(data = new_data, aes(x = attached_percent_65_79, y = predict), color = "black", size = 1.2) +  # Prediction line
+  labs(
+    title = "Relationship between Primary Care Attachment and High Urgency ED Visits (65-79)",
+    x = "Percent of Population Attached to Primary Care Physician",
+    y = "Rate of High Urgency ED Visits per 1000 Population"
+  ) +
+  theme_minimal()
+```
+
 
 
 C. Let's do this for the 45-64 age cohort!!
@@ -440,6 +475,9 @@ edv_long %>%
   theme_minimal()
 
 ```
+
+What we see here is that there is a statistically significant difference in the rates of high urgency visits between the 0-4 and age groups over 65 and the other cohorts. There is also a statistically significant difference in the rate of low urgency visits for the 0-4 age group and all other age groups for low urgency visits. 
+
 ```{r}
 # Pivot the attached percent 
 edv_attachment_long <-edv_attachment_all_age_comb %>%
@@ -473,3 +511,5 @@ edv_combined %>%
     y = "Percent of Population Attached") + 
   theme_minimal()
 ```
+
+What we see here is that the elderly populations are those with the lowest percentages on average with primary care, and the 65-79 and the 79+ age groups have statistically significant differences from the other age groups in terms of primary care attachment.
