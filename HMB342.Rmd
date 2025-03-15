@@ -126,7 +126,7 @@ edv_attachment_75_comb %>%
   theme_minimal() +
   labs(x = "Percent of Population Attached to Primary Care Physician", y = "Average Annual Rate of ED Visits (per 1000 population)")
 ```
-Really interesting data!!
+
 
 
 B. Let's do this for the 65-79 age cohort!!
@@ -171,15 +171,25 @@ edv_attachment_65_79_comb %>%
   labs(x = "Percent of Population Attached to Primary Care Physician", y = "Average Annual Rate of ED Visits (per 1000 population)")
 ```
 
+Looks like a strong relationship with attachment and the high urgency visit rate - is it significant? (pretty sure this 
+is outide the scope of the assignment but im just curious) 
+
+
+Fit Model to Data 
+
 ```{r}
 lmmodel65_79 <- glm(high_urgency_65_79 ~ attached_percent_65_79, data = edv_attachment_65_79_comb, family = "gaussian")
-summary(lmmodel65_79)
-AIC(lmmodel65_79)
+summary(lmmodel65_79) #gaussian used bc data isn't count data but a rate 
+AIC(lmmodel65_79) #goodness of model fit 
+
+#looks like the relationship is significant (p-value) and the magnitude is moderately strong - for every 1% increase 
+#in primary care attachment, the urgent emergency department visit rate for this age group decrease by 8.8
+#lots of unexplained variability, but its ecological data so its giving ecological fallacy probs 
 
 min_value <- min(edv_attachment_65_79_comb$attached_percent_65_79, na.rm = TRUE)
 max_value <- max(edv_attachment_65_79_comb$attached_percent_65_79, na.rm = TRUE)
 
-
+#creating the prediction values
 new_data <- expand.grid(
   attached_percent_65_79 = seq(
     min(min_value),
@@ -193,7 +203,7 @@ new_data$predict <- predictions
   
 ```
 
-
+#plotting predictive linear model over the data 
 ```{r}
 ggplot(edv_attachment_65_79_comb, aes(x = attached_percent_65_79, y = high_urgency_65_79)) +
   geom_point(color = "darkblue", alpha = 0.6) +  # Scatter plot of observed data
@@ -477,6 +487,7 @@ edv_long %>%
 ```
 
 What we see here is that there is a statistically significant difference in the rates of high urgency visits between the 0-4 and age groups over 65 and the other cohorts. There is also a statistically significant difference in the rate of low urgency visits for the 0-4 age group and all other age groups for low urgency visits. 
+
 
 ```{r}
 # Pivot the attached percent 
