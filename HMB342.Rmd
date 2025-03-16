@@ -215,7 +215,7 @@ ggplot(edv_attachment_65_79_comb, aes(x = attached_percent_65_79, y = high_urgen
   ) +
   theme_minimal()
 ```
-
+***Will talk about the results at the end of the document!!!
 
 
 C. Let's do this for the 45-64 age cohort!!
@@ -524,3 +524,6 @@ edv_combined %>%
 ```
 
 What we see here is that the elderly populations are those with the lowest percentages on average with primary care, and the 65-79 and the 79+ age groups have statistically significant differences from the other age groups in terms of primary care attachment.
+
+
+The results are significant for the 65-79 group. Eyeballing other groups it doesn't seem to be the case as much. What this could suggest is that this age group is more vulnerable to urgent health concerns than other groups likely for age related reasons, but that communities with higher percentages of primary care attachment have better health outcomes and fewer high urgency emergency department visits. It is possible that the reason we are not seeing this relationship as strongly with younger populations is that overall youth are healthier and have fewer urgent health issues than the elderly population, and having attachment to primary care physicians is not as crucial with younger ages. Our results suggest that elderly. With the exception of the 0-4 cohort, there seems to be almost a reverse relationship- maybe this can be attributed to po the fact that the attachment rates are not truly representative of this cohort since the attachment percentages were for ages 0-19, as opposed to 0-4 specifically, where it is likely that attachment rates differ and therefore the results are not representative of the true relationship. Similarly, since there is a bit of discrepancy between the attachment and ED visit datasets for the oldest age group (ie. attachment group's oldest age group is 80+, with the ED visits being 75+), this mismatch in ages likely confounded the results significantly. 
